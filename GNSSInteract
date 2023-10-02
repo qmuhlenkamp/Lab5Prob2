@@ -1,0 +1,45 @@
+class GNSSInteract:
+    def fit_timeseries(tlist,ylist):
+    
+        def func(x,a,b):
+            return (a*x)+b
+        params, conv = curve_fit(func, tlist, ylist)
+        myFit = []
+        for i in range(len(tlist)):
+            myFit.append(func(tlist[i],params[0],params[1]))
+        return myFit,params
+    
+    def fit_velocities(filename):
+        
+        myFile = pd.read_csv(filename,delim_whitespace=True)
+
+        tlist = myFile['yyyy.yyyy']
+        ylist0 = myFile['__east(m)']
+        ylist1 = myFile['_north(m)']
+        ylist2 = myFile['____up(m)']
+
+        fit0 = GNSSInteract.fit_timeseries(tlist,ylist0)
+        fit1 = GNSSInteract.fit_timeseries(tlist,ylist1)
+        fit2 = GNSSInteract.fit_timeseries(tlist,ylist2)
+        
+        return fit0[1][0],fit1[1][0],fit2[1][0]
+    
+    def get_coordinates(filename):
+        myFile = pd.read_csv(filename,delim_whitespace=True)
+        
+        lat_array = myFile['_latitude(deg)']
+        lon_array = myFile['_longitude(deg)']
+        lat_avg = np.average(lat_array)
+        lon_avg = np.average(lon_array)
+        
+        return lat_avg, lon_avg
+    
+    def fit_all_velocities(folder):
+        
+        csv_files = glob.glob(folder)
+        vel = []
+        for i in range(len(csv_files)):
+            vel.append(GNSSInteract.fit_velocities(csv_files[i]))
+        
+        velocity_df = pd.DataFrame(vel, columns=['E_velocity', 'N_velocity', 'U_velocity'])
+        return(velocity_df)
