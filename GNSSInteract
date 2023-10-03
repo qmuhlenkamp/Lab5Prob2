@@ -9,8 +9,9 @@ class GNSSInteract:
             myFit.append(func(tlist[i],params[0],params[1]))
         return myFit,params
     
-    def fit_velocities(filename):
-        
+def fit_velocities(filename,data_type):
+    
+    if data_type == 'GNSS':
         myFile = pd.read_csv(filename,delim_whitespace=True)
 
         tlist = myFile['yyyy.yyyy']
@@ -21,8 +22,22 @@ class GNSSInteract:
         fit0 = GNSSInteract.fit_timeseries(tlist,ylist0)
         fit1 = GNSSInteract.fit_timeseries(tlist,ylist1)
         fit2 = GNSSInteract.fit_timeseries(tlist,ylist2)
-        
+
         return fit0[1][0],fit1[1][0],fit2[1][0]
+    
+    if data_type == 'tide':
+        myFile = pd.read_csv(filename,sep=';', header=None)
+
+        xdata = myFile[0]
+        ydata = myFile[1]
+        new_array_index = ydata > -99999    # Create a new array with values greater than nan's
+
+        new_x = xdata[new_array_index]
+        new_y = ydata[new_array_index] 
+
+        fit = GNSSInteract.fit_timeseries(new_x,new_y)  # Calling my fit function
+        
+        return fit[1][0]
     
     def get_coordinates(filename):
         myFile = pd.read_csv(filename,delim_whitespace=True)
